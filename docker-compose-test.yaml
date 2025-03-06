@@ -1,0 +1,12 @@
+services:
+  api-node:
+    command:
+      - "yarn"
+      - "test"
+
+  api-golang:
+    command:
+      - "go"
+      - "test"
+      - "-v"
+      - "./..."
