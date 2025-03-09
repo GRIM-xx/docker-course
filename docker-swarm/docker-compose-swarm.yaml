@@ -1,0 +1,54 @@
+services:
+  client-react-nginx:
+    image: kentxki/docker-course-client-react-nginx
+    init: true
+    networks:
+      - frontend
+    ports:
+      - "80:8080"
+
+  api-node:
+    image: kentxki/docker-course-api-node
+    init: true
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgres://postgres:foobarbaz@db:5432/postgres
+    networks:
+      - frontend
+      - backend
+    ports:
+      - "3000:3000"
+
+  api-golang:
+    image: kentxki/docker-course-api-golang
+    init: true
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgres://postgres:foobarbaz@db:5432/postgres
+    networks:
+      - frontend
+      - backend
+    ports:
+      - "8080:8080"
+
+  db:
+    image: postgres:17.4-alpine3.21
+    environment:
+      - POSTGRES_PASSWORD=foobarbaz
+    networks:
+      - backend
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+networks:
+  frontend:
+    driver: overlay
+  backend:
+    driver: overlay
+
+volumes:
+  pgdata:
