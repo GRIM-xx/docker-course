@@ -1,0 +1,14 @@
+services:
+  api-node:
+    command:
+      - "yarn"
+      - "test"
+      - "--detectOpenHandles"
+
+  api-golang:
+    command:
+      - "go"
+      - "test"
+      - "-v"
+      - "-count=1"
+      - "./..."

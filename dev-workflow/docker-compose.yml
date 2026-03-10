@@ -1,0 +1,147 @@
+name: docker-course-app
+
+services:
+  client-react-vite:
+    image: client-react-vite
+    build:
+      context: ../client-react
+      dockerfile: ../dockerfiles/client-react/Dockerfile.4
+    init: true
+    profiles:
+      - dev
+    networks:
+      - frontend
+    volumes:
+      - type: bind
+        source: ../client-react
+        target: /usr/src/app
+      - type: volume
+        target: /usr/src/app/node_modules 
+      - type: bind
+        source: ../running-containers/client-react/vite.config.js
+        target: /usr/src/app/vite.config.js
+    ports:
+      - "5173:5173"
+
+  client-react-nginx:
+    image: client-react-nginx
+    build:
+      context: ../client-react
+      dockerfile: ../dockerfiles/client-react/Dockerfile.6
+    init: true
+    profiles:
+      - production
+    networks:
+      - frontend
+    ports:
+      - "80:8080"
+    restart: unless-stopped
+
+  api-node:
+    image: api-node
+    build:
+      context: ../api-node
+      dockerfile: ../dockerfiles/api-node/Dockerfile.9
+      target: dev
+    init: true
+    depends_on:
+      - db
+    profiles:
+      - dev
+    environment:
+      - DATABASE_URL=postgres://postgres:foobarbaz@db:5432/postgres
+    networks:
+      - frontend
+      - backend
+    volumes:
+      - type: bind
+        source: ../api-node
+        target: /usr/src/app
+      - type: volume
+        target: /usr/src/app/node_modules
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+  api-node-prod:
+    image: api-node-prod
+    build:
+      context: ../api-node
+      dockerfile: ../dockerfiles/api-node/Dockerfile.9
+      target: production
+    init: true
+    depends_on:
+      - db
+    profiles:
+      - production
+    environment:
+      - DATABASE_URL=postgres://postgres:foobarbaz@db:5432/postgres
+    networks:
+      - frontend
+      - backend
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+  api-golang:
+    image: api-golang
+    build:
+      context: ../api-golang
+      dockerfile: ../dockerfiles/api-golang/Dockerfile.9
+      target: dev
+    init: true
+    depends_on:
+      - db
+    profiles:
+      - dev
+    environment:
+      - DATABASE_URL=postgres://postgres:foobarbaz@db:5432/postgres
+    networks:
+      - frontend
+      - backend
+    volumes:
+      - type: bind
+        source: ../api-golang
+        target: /app
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  api-golang-prod:
+    image: api-golang-prod
+    build:
+      context: ../api-golang
+      dockerfile: ../dockerfiles/api-golang/Dockerfile.9
+      target: production
+    init: true
+    depends_on:
+      - db
+    profiles:
+      - production
+    environment:
+      - DATABASE_URL=postgres://postgres:foobarbaz@db:5432/postgres
+    networks:
+      - frontend
+      - backend
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  db:
+    image: postgres:18.3-alpine3.23
+    environment:
+      - POSTGRES_PASSWORD=foobarbaz
+    networks:
+      - backend
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+
+networks:
+  frontend:
+  backend:

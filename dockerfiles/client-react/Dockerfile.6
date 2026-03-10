@@ -1,0 +1,21 @@
+FROM node:25-bookworm-slim AS build
+
+WORKDIR /usr/src/app
+
+COPY package.json yarn.lock ./
+
+RUN --mount=type=cache,target=/usr/src/app/.yarn_cache \
+    yarn config set cache-folder /usr/src/app/.yarn_cache && \
+    yarn
+
+COPY . .
+
+RUN yarn build
+
+FROM nginxinc/nginx-unprivileged:1.29-alpine
+
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+COPY --from=build /usr/src/app/dist /usr/share/nginx/html
+
+EXPOSE 8080

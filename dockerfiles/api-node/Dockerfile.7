@@ -1,0 +1,15 @@
+FROM node:25-bookworm-slim
+
+WORKDIR /usr/src/app
+
+ENV NODE_ENV=production
+
+COPY package.json yarn.lock ./
+
+RUN yarn --frozen-lockfile --production
+
+USER node
+
+COPY --chown=node:node ./src .
+
+CMD [ "node", "index.js" ]

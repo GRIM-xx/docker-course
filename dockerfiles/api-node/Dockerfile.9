@@ -1,0 +1,38 @@
+# Stage 0: Define a common base with metadata
+FROM node:25-bookworm-slim AS base
+
+WORKDIR /usr/src/app
+
+COPY package.json yarn.lock ./
+
+# ---
+
+FROM base AS dev
+
+RUN --mount=type=cache,target=/usr/src/app/.yarn_cache \
+    yarn config set cache-folder /usr/src/app/.yarn_cache && \
+    yarn
+
+COPY . .
+
+CMD [ "yarn", "dev" ]
+
+# ---
+
+FROM base AS production
+
+ENV NODE_ENV=production
+
+RUN --mount=type=cache,target=/usr/src/app/.yarn_cache \
+    yarn config set cache-folder /usr/src/app/.yarn_cache && \
+    yarn --frozen-lockfile --production
+
+USER node
+
+COPY --chown=node:node ./healthcheck .
+
+COPY --chown=node:node ./src .
+
+EXPOSE 3000
+
+CMD [ "node", "index.js" ]

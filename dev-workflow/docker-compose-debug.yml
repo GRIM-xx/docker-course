@@ -1,0 +1,24 @@
+services:
+  api-node:
+    command:
+      - "yarn"
+      - "debug-docker"
+    ports:
+      - "3000:3000"
+      - "9229:9229"
+
+  api-golang:
+    command:
+      - "dlv"
+      - "debug"
+      - "--listen=:2345"
+      - "--headless=true"
+      - "--api-version=2"
+      - "--accept-multiclient"
+      - "--continue"
+      - "--log=true"
+      - "--log-output=debugger"
+      - "/app/main.go"
+    ports:
+      - "8080:8080"
+      - "2345:2345"

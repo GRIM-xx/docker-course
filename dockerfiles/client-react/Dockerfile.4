@@ -1,0 +1,13 @@
+FROM node:25-bullseye-slim AS build
+
+WORKDIR /usr/src/app
+
+COPY package.json yarn.lock ./
+
+RUN --mount=type=cache,target=/usr/src/app/.yarn_cache \
+    yarn config set cache-folder /usr/src/app/.yarn_cache && \
+    yarn
+
+COPY . .
+
+CMD [ "yarn", "dev", "--host" ]
