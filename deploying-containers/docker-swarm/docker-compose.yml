@@ -1,0 +1,98 @@
+services:
+  client-react-nginx:
+    image: kentxki/docker-course-client-react-nginx:6
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        order: start-first
+        parallelism: 1
+        delay: 10s
+    init: true
+    networks:
+      - frontend
+    ports:
+      - "80:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  api-node-prod:
+    image: kentxki/docker-course-api-node:9
+    deploy:
+      mode: replicated
+      replicas: 2
+      update_config:
+        order: start-first
+        parallelism: 1
+        delay: 10s
+    init: true
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL_FILE=/run/secrets/database-url
+    secrets:
+      - database-url
+    networks:
+      - frontend
+      - backend
+    healthcheck:
+      test: ["CMD", "node", "/usr/src/app/healthcheck.js"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  api-golang-prod:
+    image: kentxki/docker-course-api-golang:9
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        order: start-first
+        parallelism: 1
+        delay: 10s
+    init: true
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL_FILE=/run/secrets/database-url
+    secrets:
+      - database-url
+    networks:
+      - frontend
+      - backend
+    healthcheck:
+      test: ["CMD", "./healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  db:
+    image: postgres:18.3-alpine3.23
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD_FILE=/run/secrets/postgres-passwd
+    secrets:
+      - postgres-passwd
+    networks:
+      - backend
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
+
+networks:
+  frontend:
+  backend:
+
+secrets:
+  database-url:
+    external: true
+  postgres-passwd:
+    external: true
