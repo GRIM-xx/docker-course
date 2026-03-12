@@ -1,4 +1,4 @@
-API_PATH:=../api-node
+API_PATH:=../../api-node
 DOCKERHUB_REPO:=kentxki/docker-course-api-node
 
 N?=0

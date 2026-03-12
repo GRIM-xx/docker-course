@@ -1,4 +1,4 @@
-API_PATH:=../api-golang
+API_PATH:=../../api-golang
 DOCKERHUB_REPO:=kentxki/docker-course-api-golang
 
 N?=0

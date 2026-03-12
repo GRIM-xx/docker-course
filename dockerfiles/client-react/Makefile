@@ -1,4 +1,4 @@
-API_PATH:=../client-react
+API_PATH:=../../client-react
 DOCKERHUB_REPO:=kentxki/docker-course-client-react-nginx
 
 N?=0
