@@ -19,7 +19,7 @@ jobs:
         uses: docker/metadata-action@v6
         with:
           images: |
-            kentxki/docker-course-api-golang
+            kentxki/docker-course-client
           tags: |
             type=raw,value=latest
             type=ref,event=branch
@@ -37,15 +37,15 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v7
         with:
-          file: ./dockerfiles/api-golang/Dockerfile.1
-          context: ./api-golang
+          file: ./dockerfiles/client/Dockerfile.1
+          context: ./client
           push: true
           tags: ${{ steps.meta.outputs.tags }}
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@v0.36.0
         with:
-          image-ref: 'kentxki/docker-course-api-golang:latest'
+          image-ref: 'kentxki/docker-course-client:latest'
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
