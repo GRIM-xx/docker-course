@@ -1,0 +1,79 @@
+name: Docker Course
+services:
+  client-vite:
+    container_name: client-vite
+    build:
+      context: ./client
+      dockerfile: ../dockerfiles/client/Dockerfile.0
+    init: true
+    networks:
+      - frontend
+    volumes:
+      - ${PWD}/running-containers/vite.config.js:/usr/src/app/vite.config.js
+    ports:
+      - 5173:5173
+    restart: unless-stopped
+    image: client-vite
+  client-nginx:
+    container_name: client-nginx
+    build:
+      context: ./client
+      dockerfile: ../dockerfiles/client/Dockerfile.1
+    init: true
+    networks:
+      - frontend
+    ports:
+      - 80:8080
+    restart: unless-stopped
+    image: client-nginx
+  api-node:
+    container_name: api-node
+    build:
+      context: ./api-node
+      dockerfile: ../dockerfiles/api-node/Dockerfile.1
+    init: true
+    depends_on:
+      - db
+    networks:
+      - frontend
+      - backend
+    environment:
+      - DATABASE_URL=postgres://postgres:foobarbaz@db:5432/postgres
+    ports:
+      - 3000:3000
+    restart: unless-stopped
+    image: api-node
+  api-golang:
+    container_name: api-golang
+    build:
+      context: ./api-golang
+      dockerfile: ../dockerfiles/api-golang/Dockerfile.0
+    init: true
+    depends_on:
+      - db
+    networks:
+      - frontend
+      - backend
+    environment:
+      - DATABASE_URL=postgres://postgres:foobarbaz@db:5432/postgres
+    ports:
+      - 8080:8080
+    restart: unless-stopped
+    image: api-golang
+  db:
+    container_name: db
+    networks:
+      - backend
+    environment:
+      - POSTGRES_PASSWORD=foobarbaz
+    volumes:
+      - pgdata:/var/lib/postgresql
+    ports:
+      - 5432:5432
+    restart: unless-stopped
+    image: postgres:18.6-alpine
+volumes:
+  pgdata:
+networks:
+  frontend:
+  backend:

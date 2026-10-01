@@ -1,0 +1,21 @@
+services:
+  api-node:
+    command:
+      - "npm"
+      - "run"
+      - "debug-docker"
+    ports:
+      - "3000:3000"
+      - "9229:9229"
+  api-golang:
+    command:
+      - "dlv"
+      - "debug"
+      - "/app"
+      - "--headless"
+      - "--listen=:4000"
+      - "--accept-multiclient"
+      - "--continue"
+    ports:
+      - "8080:8080"
+      - "4000:4000"

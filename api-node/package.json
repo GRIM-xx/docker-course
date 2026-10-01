@@ -1,0 +1,24 @@
+{
+  "name": "api-node",
+  "version": "1.0.0",
+  "description": "a simple node api",
+  "license": "ISC",
+  "author": "KEN",
+  "type": "commonjs",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "nodemon src/index.js",
+    "debug": "nodemon --inspect src/index.js",
+    "debug-docker": "nodemon --inspect=0.0.0.0:9229 src/index.js",
+    "test": "jest"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "morgan": "^1.12.1",
+    "pg": "^8.23.0"
+  },
+  "devDependencies": {
+    "jest": "^30.5.2",
+    "nodemon": "^3.1.14"
+  }
+}
