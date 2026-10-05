@@ -189,3 +189,43 @@ compose-down:
 run-tests:
 	docker compose -f $(DEV_COMPOSE_FILE) -f $(TEST_COMPOSE_FILE) run --build api-golang
 	docker compose -f $(DEV_COMPOSE_FILE) -f $(TEST_COMPOSE_FILE) run --build api-node
+
+### DEPLOYING CONTAINERS
+
+VM_IP?=54.179.151.132
+DOCKER_HOST:="ssh://ubuntu@${VM_IP}"
+
+DOCKER_SWARM_FILE:=docker-swarm/docker-swarm.yml
+
+.PHONY: build-push swarm-init swarm-deploy-stack swarm-ls swarm-remove-stack create-secrets delete-secrets
+
+build-push:
+	cd ./dockerfiles/client && N=1 $(MAKE) build-N && N=1 $(MAKE) push-N
+	cd ./dockerfiles/api-node && N=2 $(MAKE) build-N && N=2 $(MAKE) push-N
+	cd ./dockerfiles/api-golang && N=1 $(MAKE) build-N && N=1 $(MAKE) push-N
+
+swarm-init:
+	DOCKER_HOST=${DOCKER_HOST} docker swarm init
+
+swarm-deploy-stack:
+	DOCKER_HOST=${DOCKER_HOST} docker stack deploy -c $(DOCKER_SWARM_FILE) docker-course
+
+swarm-ls:
+	DOCKER_HOST=${DOCKER_HOST} docker service ls
+
+swarm-remove-stack:
+	DOCKER_HOST=${DOCKER_HOST} docker stack rm docker-course
+
+create-secrets:
+	printf "foobarbaz" | DOCKER_HOST=${DOCKER_HOST} docker secret create postgres-passwd -
+	printf "postgres://postgres:foobarbaz@db:5432/postgres" | DOCKER_HOST=${DOCKER_HOST} docker secret create database-url -
+
+delete-secrets:
+	DOCKER_HOST=${DOCKER_HOST} docker secret rm postgres-passwd database-url
+
+redeploy-all:
+	-$(MAKE) swarm-remove-stack
+	-$(MAKE) delete-secrets
+	@sleep 3
+	-$(MAKE) create-secrets
+	-$(MAKE) swarm-deploy-stack

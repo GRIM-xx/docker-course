@@ -1,0 +1,86 @@
+services:
+  client-nginx:
+    init: true
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        order: start-first
+    networks:
+      - frontend
+    ports:
+      - 80:8080
+    image: kentxki/docker-course-client:1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+  api-node:
+    init: true
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        order: start-first
+    depends_on:
+      - db
+    networks:
+      - frontend
+      - backend
+    environment:
+      - DATABASE_URL_FILE=/run/secrets/database-url
+    secrets:
+      - database-url
+    image: kentxki/docker-course-api-node:2
+    healthcheck:
+      test: ["CMD", "node", "/usr/src/app/healthcheck.js"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+  api-golang:
+    init: true
+    deploy:
+      mode: replicated
+      replicas: 2
+      update_config:
+        order: start-first
+    depends_on:
+      - db
+    networks:
+      - frontend
+      - backend
+    environment:
+      - DATABASE_URL_FILE=/run/secrets/database-url
+    secrets:
+      - database-url
+    image: kentxki/docker-course-api-golang:1
+    healthcheck:
+      test: ["CMD", "/healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+  db:
+    networks:
+      - backend
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD_FILE=/run/secrets/postgres-passwd
+    secrets:
+      - postgres-passwd
+    volumes:
+      - pgdata:/var/lib/postgresql
+    image: postgres:18.6-alpine
+volumes:
+  pgdata:
+networks:
+  frontend:
+  backend:
+secrets:
+  database-url:
+    external: true
+  postgres-passwd:
+    external: true
